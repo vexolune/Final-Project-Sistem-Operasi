@@ -43,7 +43,7 @@ sudo systemctl restart ssh
 
 ### Langkah 4: Generate SSH Key di Mesin Client
 
-Buka PowerShell atau terminal di mesin client dan jalankan:
+Buka PowerShell atau Command Prompt di mesin client dan jalankan:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C ""
