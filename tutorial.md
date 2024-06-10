@@ -54,8 +54,11 @@ ssh-keygen -t rsa -b 4096 -C ""
 Copy key yang telah dihasilkan:
 
 ```bash
-cd ~/.ssh
-cat id_rsa.pub
+cd .ssh
+```
+
+```bash
+type id_rsa.pub
 ```
 
 Salin key yang ditampilkan, kemudian di server, jalankan:
@@ -66,14 +69,6 @@ sudo vim /home/vexolune/.ssh/authorized_keys
 ```
 
 Paste key yang telah disalin, simpan dan keluar dari Vim.
-
-Setel izin direktori dan file:
-
-```bash
-sudo chown -R vexolune:vexolune /home/vexolune/.ssh
-sudo chmod 700 /home/vexolune/.ssh
-sudo chmod 600 /home/vexolune/.ssh/authorized_keys
-```
 
 ### Langkah 6: Konfigurasi Ulang SSH untuk Autentikasi Kunci Publik
 
@@ -132,54 +127,153 @@ sudo systemctl restart ssh
 
 ### Langkah 9: Instalasi Nginx, PHP, dan MySQL
 
+Install nginx, php-fpm, php-mysql, openssl.
 ```bash
-sudo apt install nginx php-fpm php-mysql -y
+sudo apt install nginx php-fpm php-mysql openssl
 ```
 
 ### Langkah 10: Setup Direktori Website
 
+Buat direktori baru di /var/www/html.
 ```bash
-sudo mkdir -p /var/www/html/testing-website
-cd /var/www/html/testing-website
-sudo wget https://raw.githubusercontent.com/Rizqirazkafi/testing-website/main/index.php
+cd /var/www/html
+```
+```bash
+sudo mkdir <nama_project>
 ```
 
-### Langkah 11: Konfigurasi Nginx
+(Misal `<nama_project>` bernama testing-website, maka gunakan testing-website setiap ada `<nama_project>`. Contoh `cd <nama_project>` maka menjadi `cd testing-website`)
 
-Buat file konfigurasi untuk website:
+Masuk ke direktori yang telah dibuat
 
-```bash
-sudo vim /etc/nginx/conf.d/default.conf
-```
+    cd <nama_project>
 
-Masuk mode edit dengan `i`, lalu tambahkan:
+Copy file php yang sudah disiapkan dari github
 
-```nginx
-server {
-    listen 80;
-    server_name <ip_address>;
+    sudo wget https://raw.githubusercontent.com/Rizqirazkafi/testing-website/main/index.php
 
-    location / {
-        root   /var/www/html/testing-website;
-        index  index.html index.htm index.php;
+Kembali ke direktori home dengan cara 
+
+    cd ~
+
+Buat file konfigurasi dengan nama `default.conf` pada `/etc/nginx/conf.d` dengan cara
+
+    cd /etc/nginx/conf.d
+
+lalu
+
+    sudo touch default.conf
+
+Buka file default conf
+
+    sudo vim default.conf
+
+Masuk mode edit dengan klik `i` hingga muncul label `--INSERT--` pada pojok kiri bawah
+
+Copy dan paste konfigurasi berikut
+
+    server {
+            listen 80;
+            server_name  <ip_address>;
+
+            location / {
+                root   /var/www/html/<nama_project>;
+                index  index.html index.htm index.php;
+            }
+
     }
 
-    location ~ \.php$ {
-        root /var/www/html/testing-website;
+(ip_address bisa dilihat pada `ip a`)
+
+Save dan quit dari vim dengan klik `esc` lalu ketik `:wq`
+
+Kembali ke direktori home dengan cara 
+
+    cd ~
+
+Buat file html pada `/var/www/html/<nama_project>` untuk mencoba apakah konfigurasi sudah benar
+
+    cd /var/www/html/<nama_project>
+
+lalu 
+    
+    sudo touch index.html
+
+Buka file html
+
+    sudo vim index.html
+
+Masuk mode edit dengan klik `i` hingga muncul label `--INSERT--` pada pojok kiri bawah
+
+Copy dan paste kode berikut
+
+    <!doctype html>
+    <html>
+            <head>
+                    <title>
+                            Testing website
+                    </title>
+            </head>
+
+            <body>
+                    <h1>Lorem ipsum</h1>
+                    <p>Lorem ipsum dolor sit amet</p>
+            </body>
+    </html>
+
+Save dan quit dari vim dengan klik `esc` lalu ketik `:wq`
+
+Kembali ke direktori home dengan cara 
+
+    cd ~
+
+Restart nginx dengan command 
+
+    sudo systemctl restart nginx
+
+Buka browser lalu ketikkan ip address pada searchbar
+
+### Langkah 11: Konfigurasi Nginx agar bisa membaca file PHP
+
+Cek dulu versi php dengan cara
+
+    sudo systemctl status php 
+    
+Jangan langsung di enter melainkan di tab (pencet tab pada keyboard)
+
+
+Lihat pada file `php8.1-fpm.service` (jika php bukan versi 8.1, bisa jadi bernama `php7.4-fpm.service` misal php versi 7.4 atau bisa jadi hanya ada `php-fpm.service`)
+
+Enable php-fpm service (enable biar ga perlu start tiap nyalain ubuntu)
+
+    sudo systemctl enable --now php8.1-fpm
+(sesuaikan dengan versi php seperti cara diatas)
+
+Konfigurasi `default.conf`
+
+    sudo vim /etc/nginx/conf.d/default.conf
+
+Masuk mode edit dengan klik `i` hingga muncul label `--INSERT--` pada pojok kiri bawah
+
+Tambahkan konfigurasi berikut dibawah `location`
+
+     location ~ \.php$ {
+        root /var/www/html/<nama_project>;
         index index.html index.htm index.php;
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-    }
-}
-```
+     }
 
-Ganti `<ip_address>` dengan alamat IP server. Simpan dan keluar dari Vim.
+(nama_project sesuaikan dengan nama direktori yang dipakai untuk menyimpan file php)
+
+Sesuaikan versi php pada `php-fpm.sock` (karena menggunakan php8.1 maka `php8.1-fpm.sock`)
 
 ### Langkah 12: Restart Nginx dan PHP-FPM
 
 ```bash
 sudo systemctl restart nginx php8.1-fpm
 ```
+Lalu pergi ke browser dan coba akses `<ip_address>/index.php` (ip_address sesuaikan)
 
 ## 6. Menggunakan HTTPS
 
@@ -217,13 +311,16 @@ sudo systemctl restart nginx php8.1-fpm
 
 ## 7. Konfigurasi 2 Storage
 
-### Langkah 16: Mount Storage Utama dan Backup
+### Langkah 16: Mount Storage Backup
 
-Buat direktori untuk mount point:
+Lebih lengkapnya dapat dilihat disini: 
+
+[5-Partition File System][(https://www.google.com](https://github.com/Rizqirazkafi/sistem-operasi-2024/blob/main/Linux-Path/5-partiton-filesystem/main.md))
+
+Buat direktori untuk storage Backup:
 
 ```bash
-sudo mkdir /mnt/storage
-sudo mkdir /mnt/backup
+mkdir backup
 ```
 
 Edit file `/etc/fstab` untuk mount secara permanen:
@@ -232,11 +329,10 @@ Edit file `/etc/fstab` untuk mount secara permanen:
 sudo vim /etc/fstab
 ```
 
-Tambahkan baris berikut (sesuaikan dengan partisi storage Anda, misalnya `/dev/sdb1` untuk storage utama dan `/dev/sdc1` untuk backup):
+Tambahkan baris berikut:
 
 ```plaintext
-/dev/sdb1 /mnt/storage ext4 defaults 0 2
-/dev/sdc1 /mnt/backup ext4 defaults 0 2
+/dev/sdb1 /home/vexolune/backup ext4 defaults 0 1
 ```
 
 Simpan dan keluar dari Vim, lalu mount semua partisi yang tercantum di `/etc/fstab`:
@@ -244,3 +340,10 @@ Simpan dan keluar dari Vim, lalu mount semua partisi yang tercantum di `/etc/fst
 ```bash
 sudo mount -a
 ```
+
+Untuk mengecek apakah berhasil coba cek
+
+```bash
+lsblk
+```
+
