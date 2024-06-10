@@ -315,7 +315,7 @@ sudo systemctl restart nginx php8.1-fpm
 
 Lebih lengkapnya dapat dilihat disini: 
 
-[5-Partition File System][(https://www.google.com](https://github.com/Rizqirazkafi/sistem-operasi-2024/blob/main/Linux-Path/5-partiton-filesystem/main.md))
+[5-Partition File System](https://github.com/Rizqirazkafi/sistem-operasi-2024/blob/main/Linux-Path/5-partiton-filesystem/main.md)
 
 Buat direktori untuk storage Backup:
 
