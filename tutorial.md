@@ -1,3 +1,5 @@
+# CREDIT TO : [Rizzu](https://github.com/haharizzu)
+
 # Tugas Akhir Sistem Operasi via Linux
 Sebuah perusahaan ingin membuat sebuah server . Perusahaan ingin server tersebut dapat diakses menggunakan ssh dengan port 9005 dan menggunakan ssh-key sebagai basis authentifikasi tanpa password. Dalam server tersebut terdapat 1 user lain sebagai guest user dengan akses hanya di home directory. Server tersebut harus dapat melayani permintaan website php sederhana dengan file yang telah disediakan dan harus menggunakan https. Server tersebut wajib memiliki 2 storage yaitu storage utama dan backup yang di mount secara permanen.
 
